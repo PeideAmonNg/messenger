@@ -7,36 +7,26 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
-exports.newPostcard = functions.database.ref('/postcards/{pushId}')
+exports.updatePostcardCount = functions.database.ref('/postcards/{postcardId}')
 .onCreate((snapshot, context) => {
 	// Grab the current value of what was written to the Realtime Database.
 	const original = snapshot.val();
 	let fromUid = original.from.uid, toUid = original.to.uid;
 
-	console.log('Uppercasing', context.params.pushId, original);
-	// const uppercase = original.toUpperCase();
 	// You must return a Promise when performing asynchronous tasks inside a Functions such as
 	// writing to the Firebase Realtime Database.
-	// Setting an "uppercase" sibling in the Realtime Database returns a Promise.
-	// let sentCount = firebase.database.child(`/postcardCount/sent/${fromUid}/${toUid}`).val() || 0;
-	return admin.database().ref(`/postcardCount/sent/${fromUid}/${toUid}`).once('value', s  => {
-		let sentCount = s.val()	|| 0;
-		sentCount++;
 
-		admin.database().ref(`/postcardCount/sent/${fromUid}/${toUid}`).set(sentCount);
+	return admin.database().ref(`/postcardCount/${fromUid}/${toUid}`).once('value', s  => {
+		let sentCount = (s.exists() && s.val().sent || 0) + 1;
 
-		admin.database().ref(`/postcardCount/received/${toUid}/${fromUid}`).once('value', s  => {
-			let receivedCount = s.val() || 0;
-			receivedCount++;
+		admin.database().ref(`/postcardCount/${fromUid}/${toUid}/sent`).set(sentCount);
 
-			admin.database().ref(`/postcardCount/received/${toUid}/${fromUid}`).set(receivedCount);
+		admin.database().ref(`/postcardCount/${toUid}/${fromUid}`).once('value', s  => {
+			let receivedCount = (s.exists() && s.val().received || 0) + 1;
+
+			admin.database().ref(`/postcardCount/${toUid}/${fromUid}/received`).set(receivedCount);
 		});
 	});
-	// functions.database.
-	// let sentCount = firebase.database.child(`/postcardCount/sent/${fromUid}/${toUid}`).val() || 0;
-	// return functions.database.ref().set({sentCount: ++sentCount})
-	
-	// return snapshot.ref.parent.child('uppercase').set(uppercase);
 });
 		
 // exports.calculateMatchingInterests = functions.database.ref('/users/{uid}/interests')
@@ -45,21 +35,22 @@ exports.newPostcard = functions.database.ref('/postcards/{pushId}')
 // 		console.log(interests);
 // 	});
 
-exports.countMatchingInterests = functions.auth.user().onCreate((user) => {
-	//get all users' interests
-	// admin.auth().listUsers().then(result => {
-	// 	for (i = 0; i < result.length; i++) { 
-	// 		text += cars[i] + "<br>";
-	// 	}
-	// });
+countMatchingInterests = (snapshot, context) => {
+	
+	getMatchingInterests = (uInterests, myInterests) => {
+		// return Math.floor(Math.random() * 20);   
 
-	getMatchingInterestsCount = (uIntersts, myInterests) => {
-		return Math.floor(Math.random() * 20);   
-	}
+		let interests = {};
+		let count = 0;
+				
+		for(var key in myInterests) {
+			if(uInterests[key]) {
+				interests[key] = uInterests[key];
+				count++;
+			}
+		}
 
-	getMyIntersts = () => {
-		// array containing id of interests
-		return [1, 5, 9, 12, 44];
+		return {interests, count};
 	}
 
 	sortUsersByHighestCount = (userToCount) => {
@@ -69,40 +60,116 @@ exports.countMatchingInterests = functions.auth.user().onCreate((user) => {
 	
 	// get max number of top users
 	getTopUsers = (userToCount, max) => {
-		console.log
 		return userToCount;
 	}
 
-	saveTopUsers = userToCount => {		
-		admin.database().ref(`matchingInterestsCount/${user.uid}`).set(userToCount);
+	save = userToCount => {
+		admin.database().ref(`matchingInterestsCount/${context.params.uid}`).set(userToCount);
+	}
+
+	isEmpty = obj => {
+    for(var key in obj) {
+			if(obj.hasOwnProperty(key))
+				return false;
+		}
+    return true;
 	}
 
 	return admin.database().ref('userInterests').once('value', s => {
-		let userToMatchingInterestsCount = {};
+		// Object containing uid -> {interests, count}
+		let matchingInterestsCount = {};
+		console.log('snapshot', snapshot);
+		let myInterests = snapshot.val().interests;
+		console.log('myInterests', myInterests);
+		// Main user has at least one interest
+		if(typeof myInterests === 'object' && !isEmpty(myInterests)) {		
+			s.forEach(u => {
+				const uid = u.key;
+				const uInterests = u.val().interests;
+				const uName = u.val().name;
 
-		s.forEach(u => {
-			const uid = u.key;
-			const uIntersts = u.val();
+				console.log('uInterests', uInterests);
 
-			console.log('uid', uid);
-			console.log('uInterests', uIntersts);
+				if(uid !== context.params.uid) {
+					let matchingInterests = getMatchingInterests(uInterests, myInterests);
 
-			userToMatchingInterestsCount[uid] = getMatchingInterestsCount(uIntersts, getMyIntersts());
+					if(matchingInterests.count > 0) {
+						matchingInterestsCount[uid] = {
+							interests: matchingInterests.interests,
+							count: matchingInterests.count,
+							name: uName
+						};
+					}
+				}
 
-			console.log('after getMatchingInterestsCount', userToMatchingInterestsCount);
-		});
+				console.log('after getMatchingInterest', matchingInterestsCount);
+			});
+			
+			console.log('after s.forEach', matchingInterestsCount);
 
-		console.log('after s.forEach', userToMatchingInterestsCount);
+			matchingInterestsCount = sortUsersByHighestCount(matchingInterestsCount);
 
-		userToMatchingInterestsCount = sortUsersByHighestCount(userToMatchingInterestsCount);
+			console.log('after sortUsersByHighestCount', matchingInterestsCount);
 
-		console.log('after sortUsersByHighestCount', userToMatchingInterestsCount);
+			matchingInterestsCount = getTopUsers(matchingInterestsCount, 20);
 
-		userToMatchingInterestsCount = getTopUsers(userToMatchingInterestsCount, 20);
+			console.log('after getTopUsers', matchingInterestsCount);
 
-		console.log('after getTopUsers', userToMatchingInterestsCount);
+			save(matchingInterestsCount);
+		}
+	});
+}
 
-		saveTopUsers(userToMatchingInterestsCount);
+// exports.countMatchingInterests = functions.auth.user().onCreate((user) => {
+exports.getMatchingInterests = functions.database.ref('/userInterests/{uid}')
+	.onCreate((snapshot, context) => {
+		return countMatchingInterests(snapshot, context);
+	});
+
+exports.updateMatchingInterests = functions.database.ref('/userInterests/{uid}')
+	.onUpdate((snapshot, context) => {
+		return countMatchingInterests(snapshot.after, context);
+	});
+
+	
+exports.addToThreadList = functions.database.ref('threads/{threadId}/messages/{msgId}')
+.onWrite((snapshot, context) => {
+	// Grab the current value of what was written to the Realtime Database.
+	const original = snapshot.after.val();
+
+	console.log(snapshot.after.val());
+	console.log(context);
+	// console.log('context.auth.uid ', context.auth.uid );
+	console.log('context.auth.uid ', context.auth);
+
+	return admin.database().ref(`threads/${context.params.threadId}`).once('value', s => {
+		let users = s.val().users;
+		let serialisedUsers = s.val().serialisedUsers;
+		console.log('users', users);
+
+		var i = 0;
+		for (var key in users) {
+			console.log('key oustide', key);
+			console.log('i outside', i++);
+			(key => {
+				admin.database().ref(`ThreadList/${key}/threadList/${context.params.threadId}`).transaction(currentThread => {
+					// If users/ada/rank has never been set, currentRank will be `null`.
+					console.log('key inside', key);
+					console.log(key === context.auth.uid);
+					console.log('i inside', i++);
+					return {
+						lastRead: key === context.auth.uid ? original.timestamp : ((currentThread && currentThread.lastRead) || '') ,
+						// lastRead: original.date,
+						lastUpdated: original.timestamp,
+						// ...(original.image && {image: original.image}),
+						latestMsg: original.msg,
+						updatedBy: original.user,
+						users: users,
+						serialisedUsers: serialisedUsers						
+					}
+				});
+			})(key);
+		}
 	});
 
 });

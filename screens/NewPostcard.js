@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, TextInput, ScrollView, TouchableOpacity, Image, Dimensions, FlatList, Alert} from 'react-native';
+import {Text, TextInput, ScrollView, TouchableOpacity, Image, Dimensions, FlatList, Alert, ToastAndroid} from 'react-native';
 import ImagePicker from 'react-native-image-picker';
 import firebase from 'react-native-firebase';
 import makeHeader from '../header';
@@ -62,24 +62,26 @@ export default class NewPostcardScreen extends React.Component {
 				}, 
 				err => {
 					if(err) {
-						Alert.alert('Error sending postcard', err.toString());
+						ToastAndroid.show('Error sending postcard', ToastAndroid.SHORT);
 					}
 					
-					this.props.navigation.navigate('Inbox');
+					ToastAndroid.show('Postcard sent!', ToastAndroid.SHORT);
+					this.props.navigation.navigate('Home');
 				});	
 			})
-			.catch(err => Alert.alert('Error uploading postcard image', err.toString()));
+			.catch(err => ToastAndroid.show('Error uploading postcard image', ToastAndroid.SHORT));
 	}
 
-	handleSearch(name) {
+	handleUserSearch(name) {
 		this.setState({toName: name});
 		
 		if(name) {
-			firebase.database().ref('users').orderByChild('nameLower').startAt(name.toLowerCase()).endAt(name.toLowerCase() + '\uf8ff')
+			firebase.database().ref('users').orderByChild('nameLower')
+				.startAt(name.toLowerCase()).endAt(name.toLowerCase() + '\uf8ff')
 				.once('value', snapshot => {
 					let users = [];
 					snapshot.forEach(user => {
-						users.push({name: user.val().name, key: user.val().uid});
+						users.push({name: user.val().name, key: user.key});
 					})
 					this.setState({searchedNames: users});
 				});
@@ -90,18 +92,23 @@ export default class NewPostcardScreen extends React.Component {
 
 	showImagePicker(){
 		ImagePicker.showImagePicker(options, (response) => {																
-			if(response.error) {
+			
+  		if(response.didCancel) {
+				// user cancelled
+			} else if(response.error) {
 				Alert.alert('Error selecting image', response.error);
 			} else {
 				const source = {uri: response.uri};						
 
+				const sidePadding = 20;
+
 				Image.getSize(response.uri, (width, height) => {
 					let w = Dimensions.get('window').width;
-					let ratio = width / (w-40);
+					let ratio = width / (w-sidePadding);
 
 					this.setState({
 						image: source,
-						width: w-40,
+						width: w-sidePadding,
 						height: height / ratio
 					});	
 				})									
@@ -111,10 +118,10 @@ export default class NewPostcardScreen extends React.Component {
 
   render() {
     return (
-			<ScrollView style={{flex: 1, alignSelf: 'stretch', paddingLeft: 10, paddingRight: 10}}>
+			<ScrollView style={{flex: 1, alignSelf: 'stretch', paddingLeft: 10, paddingRight: 10, backgroundColor: 'white'}}>
 				<Text style={{fontWeight: 'bold', marginTop: 10}}>To</Text>
 				<TextInput
-					onChangeText={text => this.handleSearch(text)}
+					onChangeText={text => this.handleUserSearch(text)}
 					value={this.state.toName}
 					style={{borderBottomColor: 'black', borderBottomWidth: 1}}
 				/>
@@ -122,6 +129,7 @@ export default class NewPostcardScreen extends React.Component {
 					data={this.state.searchedNames}
 					renderItem={({item}) => 
 						<TouchableOpacity
+							key={item.key}
 							onPress={() => this.setState({toName: item.name, toUid: item.key, searchedNames: []})}
 						>
 							<Text style={{paddingTop: 5, paddingBottom: 5}}>{item.name}</Text>
@@ -137,14 +145,10 @@ export default class NewPostcardScreen extends React.Component {
 					numberOfLines={5}
 					style={{borderBottomColor: 'black', borderBottomWidth: 1, marginBottom: 20}}
 				/>
-				<TouchableOpacity
-					onPress={() => this.showImagePicker()}
-				>
-					<Text style={{fontWeight: 'bold'}}>Select Image</Text>
-				</TouchableOpacity>
+				<Text style={{fontWeight: 'bold'}}>Image</Text>
+				<TouchableOpacity onPress={() => this.showImagePicker()}><Text style={{paddingTop: 10, paddingBottom: 10}}>Select</Text></TouchableOpacity>
 				{
-					this.state.image  !== '' &&
-						<Image source={this.state.image} style={{width: this.state.width, height: this.state.height}}/>
+					this.state.image !== '' && <Image source={this.state.image} style={{width: this.state.width, height: this.state.height}}/>
 				}
 			</ScrollView>
     );

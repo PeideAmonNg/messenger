@@ -80,7 +80,7 @@ export class ReceivedScreen extends React.Component {
 
   render() {
     return (
-      <View style={{flex: 1, alignItems: 'stretch'}}>
+      <View style={{flex: 1, backgroundColor: 'white'}}>
 				<UserModal 
 					isModalVisible={this.state.isModalVisible}
 					selectedUser={this.state.selectedUser}
@@ -151,21 +151,13 @@ export class SentScreen extends React.Component {
 		}
 	}
 
-	userClicked(item) {		
-		firebase.database().ref('friends').child(firebase.auth().currentUser.uid + '/' + item.toUid).once('value', s => {
-			let isFriend = s.exists() ? true : false;				
-			
-			if(isFriend) {
-				this.props.navigation.navigate('Friend', {isFriend, uid: item.toUid, userName: item.to});
-			} else {
-				this.props.navigation.navigate('User', {isFriend, uid: item.toUid, userName: item.to});				
-			}			
-		});
+	userClicked(item) {
+		this.setState({selectedUser: {uid: item.toUid, userName: item.to}, isModalVisible: true});
 	}
 
   render() {
     return (
-      <View style={{flex: 1, alignItems: 'stretch'}}>
+      <View style={{flex: 1, backgroundColor: 'white'}}>
 				<UserModal 
 					isModalVisible={this.state.isModalVisible}
 					selectedUser={this.state.selectedUser}			

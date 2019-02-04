@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View, TouchableOpacity, FlatList} from 'react-native';
+import {Text, View, TouchableOpacity, FlatList, Image} from 'react-native';
 import firebase from 'react-native-firebase';
 import makeHeader from '../header';
 import UserModal from './UserModal';
@@ -25,8 +25,9 @@ export class FriendsScreen extends React.Component {
 			let friends = [];
 			snapshot.forEach(friend => {
 				friends.push({
-					key: friend.key, 
-					name: friend.val()
+					key: friend.key,
+					name: friend.val().name,
+					photoURL: friend.val().photoURL
 				})
 			})
 
@@ -44,7 +45,7 @@ export class FriendsScreen extends React.Component {
 
   render() {
     return (
-      <View style={{flex: 1, padding: 10}}>
+      <View style={{flex: 1, backgroundColor: 'white'}}>				
 				<UserModal 
 					isModalVisible={this.state.isModalVisible}
 					selectedUser={this.state.selectedUser}
@@ -53,14 +54,22 @@ export class FriendsScreen extends React.Component {
 				/>
 				<FlatList
 					data={this.state.friends}
-					renderItem={({item}) => 
-						<TouchableOpacity
-							onPress={() => {
-								// this.props.navigation.navigate('Friend', {uid: item.key, userName: item.name});
-								this.userClicked(item);
-							}}>
-							<Text style={{marginBottom: 5}}>{item.name}</Text>
-						</TouchableOpacity>
+					renderItem={({item}) =>
+						<View style={{padding: 10}}>
+							<TouchableOpacity
+								onPress={() => {
+									this.userClicked(item);
+								}}
+								style={{flex: 1, flexDirection: 'row'}}
+							>
+								{
+									item.photoURL	
+										? <Image source={{uri: item.photoURL}} style={{width: 40, height: 40, borderRadius: 2, marginRight: 5}}/>
+										: <View style={{marginRight: 5, borderRadius: 20, width: 40, height: 40, backgroundColor: 'black'}}></View>
+								}
+								<Text style={{alignSelf: 'center'}}>{item.name}</Text>
+							</TouchableOpacity>
+						</View>
 					}
 				/>
       </View>

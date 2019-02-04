@@ -1,6 +1,7 @@
 import React from 'react';
 import {Text, View, ToastAndroid} from 'react-native';
 import firebase from 'react-native-firebase';
+import makeHeader from '../header';
 
 export class UserScreen extends React.Component {
 	static navigationOptions = ({navigation}) => 
@@ -22,7 +23,7 @@ export class UserScreen extends React.Component {
 						firebase.database().ref('friends').child(firebase.auth().currentUser.uid + '/' + navigation.getParam('uid'))
 							.set(navigation.getParam('userName'), err => {
 								if(err) {
-									Alert.alert('Error unfriending', err.toString());
+									Alert.alert('Error friending', err.toString());
 								} else {								
 									navigation.setParams({isFriend: true});
 									ToastAndroid.show('Friended', ToastAndroid.SHORT);	
@@ -47,6 +48,11 @@ export class UserScreen extends React.Component {
 		}
 	}
 	componentDidMount() {
+		firebase.database().ref('users').child(this.props.navigation.getParam('uid'))
+			.once('value', snapshot => {
+				this.props.navigation.setParams({userName: snapshot.val().name});
+			});
+
 		firebase.database().ref('friends').child(firebase.auth().currentUser.uid + '/' + this.props.navigation.getParam('uid'))
 			.once('value', snapshot => {
 				this.props.navigation.setParams({isFriend: snapshot.exists()});

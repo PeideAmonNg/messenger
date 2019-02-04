@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, TextInput, View, ActivityIndicator, TouchableOpacity, Alert} from 'react-native';
+import {Text, TextInput, View, ActivityIndicator, TouchableOpacity, Alert, ToastAndroid} from 'react-native';
 import firebase from 'react-native-firebase';
 
 export class AuthLoadingScreen extends React.Component {
@@ -30,10 +30,9 @@ export class AuthLoadingScreen extends React.Component {
   render() {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-				{
-					this.state.signedIn ?
-					<ActivityIndicator/> :
-					<AuthScreen/>
+				{this.state.signedIn
+					? <ActivityIndicator/>
+					: <AuthScreen/>
 				}        
       </View>
     );
@@ -57,13 +56,13 @@ class AuthScreen extends React.Component {
 	handleAuth() {
 		if(this.state.authMode == SIGN_IN) {
 			if(!this.state.email || !this.state.password) {
-				Alert.alert(this.state.authMode, 'enter email or password');
+				ToastAndroid.show('Enter Email and Password', ToastAndroid.SHORT);
 			} else { 
 				this.setState({loading: true});
 				firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
 				.catch(err => {
 					this.setState({loading: false});
-					Alert.alert('Error signing in', err.code);		
+					ToastAndroid.show('Error signing in: ' + err.code, ToastAndroid.SHORT);
 				});
 			}
 		} else {
@@ -73,13 +72,12 @@ class AuthScreen extends React.Component {
 					firebase.database().ref(`users/${userCred.user.uid}`)
 						.set({
 							name: this.state.displayName,
-							nameLower: this.state.displayName && this.state.displayName.toLowerCase(),
-							uid: userCred.user.uid
+							nameLower: this.state.displayName && this.state.displayName.toLowerCase()
 						});
 				})
 				.catch(err => {
 					this.setState({loading: false});
-					Alert.alert('Error', err.code);		
+					ToastAndroid.show('Error signing up: ' + err.code, ToastAndroid.SHORT);
 				});
 		}
 	}
@@ -117,17 +115,17 @@ class AuthScreen extends React.Component {
 						style={{borderBottomColor, color, borderBottomWidth: 1, marginBottom: 20}}
 					/>
 				}
-				{
-					this.state.loading ? 
-					<ActivityIndicator/> :
-					<View>
-						<TouchableOpacity onPress={() => this.handleAuth()}>
-							<Text style={{padding: 5, borderColor: styles.textColor, color, borderWidth: 1, alignSelf: 'flex-start', borderRadius: 5}}>
-								{this.state.authMode}
-							</Text>
-						</TouchableOpacity>			
-						{
-							this.state.authMode == SIGN_IN &&
+				
+				{this.state.loading
+					? <ActivityIndicator/>
+					: <View style={{flex: 1}}>
+							<TouchableOpacity onPress={() => this.handleAuth()}>
+								<Text style={{padding: 5, borderColor: styles.textColor, color, borderWidth: 1, alignSelf: 'flex-start', borderRadius: 2}}>
+									{this.state.authMode}
+								</Text>
+							</TouchableOpacity>			
+
+							{this.state.authMode == SIGN_IN &&
 								<View style={{flexDirection:'row', flexWrap:'wrap', marginTop: 10, marginBottom: 10}}>
 									<Text style={{color}}>or </Text>
 									<TouchableOpacity
@@ -139,14 +137,16 @@ class AuthScreen extends React.Component {
 										<Text style={{color}}>sign in anonymously</Text>							
 									</TouchableOpacity>		
 								</View>
-						}						
-						<View style={{borderBottomColor, borderBottomWidth: 1, marginTop: 20, marginBottom: 20}}></View>	
-						<TouchableOpacity
-							onPress={() => this.setState({authMode: this.state.authMode == SIGN_IN ? SIGN_UP : SIGN_IN})}
-						>
-							<Text style={{color}}>{this.state.authMode == SIGN_IN ? SIGN_UP : SIGN_IN}</Text>
-						</TouchableOpacity>
-					</View>
+							}
+
+							<View style={{flex: 1, justifyContent: 'flex-end'}}>
+								<TouchableOpacity
+									onPress={() => this.setState({authMode: this.state.authMode == SIGN_IN ? SIGN_UP : SIGN_IN})}
+								>
+									<Text style={{color}}>{this.state.authMode == SIGN_IN ? SIGN_UP : SIGN_IN}</Text>
+								</TouchableOpacity>
+							</View>
+						</View>
 				}				
 			</View>
 		)	

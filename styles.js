@@ -1,5 +1,6 @@
 export default styles = {
-	mainColor: '#99424F',
+	// mainColor: '#99424F',
+	mainColor: 'white',
 	// mainColor: '#f4511e',
-	textColor: 'white'
+	textColor: '#474747'
 }

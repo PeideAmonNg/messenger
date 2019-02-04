@@ -33,7 +33,7 @@ export default makeHeader = (title, headerRight, opts) => {
 		},
 		headerTintColor: styles.textColor,
 		headerTitleStyle: {
-			// fontWeight: 'bold',
+			fontWeight: 'normal'
 		}
 	}
 };

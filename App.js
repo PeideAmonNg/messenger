@@ -2,12 +2,13 @@ import React, {Component} from 'react';
 import {createBottomTabNavigator, createStackNavigator, createSwitchNavigator, createMaterialTopTabNavigator} from 'react-navigation';
 
 import {ReceivedScreen, SentScreen} from './screens/Home';
-import NewPostcardScreen from './screens/NewPostcard';
 import {FriendsScreen} from './screens/Friends';
 import {ExploreScreen} from './screens/Explore';
 import {SettingsScreen, UpdateProfileScreen} from './screens/Settings';
 import {AuthLoadingScreen} from './screens/Auth';
 import {UserScreen} from './screens/User';
+import {ThreadListScreen, SelectUsersScreen} from './screens/Threads';
+import {ThreadScreen} from './screens/Thread';
 
 import styles from './styles';
 import makeHeader from './header';
@@ -17,40 +18,41 @@ let home = createMaterialTopTabNavigator({
 	Sent: SentScreen
 }, {
 	tabBarOptions: {
-		activeTintColor: styles.mainColor,		
-		inactiveTintColor: 'lightgray',
+		activeTintColor: 'black',		
+		inactiveTintColor: 'gray',
 		style: {
 			backgroundColor: 'white',
 		},
 		indicatorStyle: {
-			backgroundColor: styles.mainColor
+			backgroundColor: 'black'
 		}
 	}
 });
 
 home.navigationOptions = ({ navigation, screenProps }) => 
-	makeHeader('Inbox', {text: 'New', func: () => navigation.navigate('NewPostcard')});
+	makeHeader('Postcards', {text: 'New', func: () => navigation.navigate('NewPostcard')});
 
 let app = createBottomTabNavigator({
-	Home: createStackNavigator({
-		Home: home,
-		NewPostcard: NewPostcardScreen
+	Messages: createStackNavigator({
+		ThreadList: ThreadListScreen,
+		Thread: ThreadScreen,
+		SelectUsers: SelectUsersScreen
 	}),
 	Friends: createStackNavigator({
 		Friends: FriendsScreen,
 		Friend: UserScreen
 	}),
-	Explore: createStackNavigator({
+	Community: createStackNavigator({
 		Explore: ExploreScreen,
 		User: UserScreen
 	}),
-  Settings: createStackNavigator({
+  Profile: createStackNavigator({
 		Settings: SettingsScreen,
 		UpdateProfile: UpdateProfileScreen
 	}),
 }, {
 	tabBarOptions: {
-		activeTintColor: styles.mainColor
+		activeTintColor: '#474747'
 	}
 });
 
