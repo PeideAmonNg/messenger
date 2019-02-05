@@ -5,11 +5,13 @@ import ImagePicker from 'react-native-image-picker';
 import makeHeader from '../header';
 import ImageResizer from 'react-native-image-resizer';
 
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import styles from '../styles';
 
 export class SettingsScreen extends React.Component {
 	static navigationOptions = ({navigation}) => 
-		makeHeader('Profile', {text: 'Update', func: () => navigation.navigate('UpdateProfile')});
+		makeHeader('Profile', {text: <Icon name='pencil' size={20} color={styles.textColor} />, func: () => navigation.navigate('UpdateProfile')});
 
 	constructor(props) {
 		super(props);
@@ -82,7 +84,7 @@ export class UpdateProfileScreen extends React.Component {
 		let isProfileUpdated = profile && (profile.displayName != user.displayName || profile.photoURL != user.photoURL);
 
 		return makeHeader('Update Profile', {
-			text: navigation.getParam('loading') ? 'saving' : (isProfileUpdated ? '\u2713' : ''), 
+			text: navigation.getParam('loading') ? 'saving' : (isProfileUpdated ? <Icon name='check' size={20} color={styles.textColor} /> : ''), 
 			disabled:(navigation.getParam('loading') || !isProfileUpdated) ? true : false,
 			func: () => {
 

@@ -64,8 +64,8 @@ export class FriendsScreen extends React.Component {
 							>
 								{
 									item.photoURL	
-										? <Image source={{uri: item.photoURL}} style={{width: 40, height: 40, borderRadius: 2, marginRight: 5}}/>
-										: <View style={{marginRight: 5, borderRadius: 20, width: 40, height: 40, backgroundColor: 'black'}}></View>
+										? <Image source={{uri: item.photoURL}} style={{width: 40, height: 40, marginRight: 5}}/>
+										: <View style={{width: 40, height: 40, marginRight: 5}}></View>
 								}
 								<Text style={{alignSelf: 'center'}}>{item.name}</Text>
 							</TouchableOpacity>

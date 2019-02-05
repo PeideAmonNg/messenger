@@ -2,12 +2,24 @@ import React from 'react';
 import {Text, TextInput, View, ToastAndroid, FlatList, TouchableOpacity, Image, ActivityIndicator, Modal, TouchableWithoutFeedback, Alert} from 'react-native';
 import firebase from 'react-native-firebase';
 
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import makeHeader from '../header';
 import styles from '../styles';
 
+import TimeAgo from 'javascript-time-ago'
+ 
+// Load locale-specific relative date/time formatting rules.
+import en from 'javascript-time-ago/locale/en'
+
+TimeAgo.addLocale(en)
+ 
+// Create relative date/time formatter.
+const timeAgo = new TimeAgo('en-US')
+
 export class ThreadListScreen extends React.Component {
 	static navigationOptions = ({navigation}) => makeHeader('Messages', {
-		text: '\uFF0B',
+		text: <Icon name='plus' size={20} color={styles.textColor} />,
 		func: () => navigation.navigate('SelectUsers')
 	});
 
@@ -83,14 +95,14 @@ export class ThreadListScreen extends React.Component {
 									<View style={{flexDirection: 'row'}}>
 										<Image
 											source={{uri: photoURL}}
-											style={{width: 60, height: 60, borderRadius: 2, marginRight: 5}}
+											style={{width: 60, height: 60, marginRight: 5}}
 										/>
 										<View style={{flex: 1}}>
 											<Text>{delete item.users[uid] && Object.values(item.users).map(u => u.name).join(', ')}</Text>
 											<Text numberOfLines={1} style={{fontWeight: item.lastUpdated > item.lastRead ? 'bold' : 'normal'}}>
 												{item.updatedBy.uid === uid ? 'me' : item.updatedBy.name}: {item.latestMsg}											
 											</Text>
-											<Text style={{color: 'gray', fontSize: 12}}>  {new Date(item.lastUpdated).toLocaleString()}</Text>
+											<Text style={{color: 'gray', fontSize: 12}}>{timeAgo.format(new Date(item.lastUpdated))}</Text>
 										</View>
 									</View>
 								</TouchableOpacity>
@@ -137,7 +149,7 @@ export class ThreadListScreen extends React.Component {
 
 export class SelectUsersScreen extends React.Component {	
 	static navigationOptions = ({navigation}) => makeHeader('Send To', {
-		text: 'Next',
+		text: <Icon name='arrow-right' size={20} color={styles.textColor} />,
 		func: () => {
 			var users = navigation.getParam('users');
 			if(Array.isArray(users) && users.length > 0) {
@@ -213,9 +225,11 @@ export class SelectUsersScreen extends React.Component {
 						key={user.key}
 						onPress={() => this.removeUser(user)}
 					>
-						<View style={{flexDirection: 'row', margin: 5, padding: 5, borderWidth: 0, borderRadius: 2 , borderColor: 'lightgray'}}>
+						<View style={{flexDirection: 'row', margin: 5, padding: 5, backgroundColor: styles.textColor, alignItems: 'center'}}>
 							<Image source={{uri: user.photoURL}} style={{width: 30, height: 30}}/>
-							<Text key={user.key} style={{padding: 5}}>{user.name}</Text><Text style={{padding: 5, color: 'lightgray'}}>x</Text>
+							<Text key={user.key} style={{padding: 5, color: styles.mainColor}}>{user.name}</Text>
+							{/* <Text style={{padding: 5, color: 'lightgray'}}>x</Text> */}
+							<Icon name='close' size={20} color={styles.mainColor} />
 						</View>
 					</TouchableOpacity>
 				})}

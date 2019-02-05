@@ -7,12 +7,14 @@
     "test": "jest"
   },
   "dependencies": {
+    "javascript-time-ago": "^2.0.1",
     "react": "16.6.1",
     "react-native": "0.57.5",
     "react-native-firebase": "^5.1.0",
     "react-native-image-picker": "^0.27.1",
     "react-native-image-resizer": "^1.0.0",
     "react-native-modal": "^7.0.0",
+    "react-native-vector-icons": "^6.2.0",
     "react-navigation": "^2.18.2"
   },
   "devDependencies": {

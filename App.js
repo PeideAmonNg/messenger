@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import {createBottomTabNavigator, createStackNavigator, createSwitchNavigator, createMaterialTopTabNavigator} from 'react-navigation';
 
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import {ReceivedScreen, SentScreen} from './screens/Home';
 import {FriendsScreen} from './screens/Friends';
 import {ExploreScreen} from './screens/Explore';
@@ -50,9 +52,31 @@ let app = createBottomTabNavigator({
 		Settings: SettingsScreen,
 		UpdateProfile: UpdateProfileScreen
 	}),
-}, {
+},
+{
+	navigationOptions: ({ navigation }) => ({
+		tabBarIcon: ({ focused, horizontal, tintColor }) => {
+			const { routeName } = navigation.state;
+			let iconName;
+			console.log(routeName);
+			if (routeName === 'Messages') {
+				iconName = 'message-outline';
+			} else if(routeName === 'Friends') {
+				iconName = 'account-multiple-outline';
+			} else if(routeName === 'Community') {
+				iconName = 'account-search-outline';
+			} else if(routeName === 'Profile') {
+				iconName = 'settings-outline';
+			}
+
+			// You can return any component that you like here!
+			return <Icon name={iconName} size={20} color={tintColor} />
+		},
+	}),
 	tabBarOptions: {
-		activeTintColor: '#474747'
+		activeTintColor: '#474747',
+		inactiveTintColor: 'lightgray',
+		showLabel: false
 	}
 });
 

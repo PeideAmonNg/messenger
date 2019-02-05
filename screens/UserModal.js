@@ -138,8 +138,8 @@ export default class UserModal extends React.Component {
 						<View style={{flexDirection: 'row', paddingBottom: 10, borderBottomColor: 'darkgray', borderBottomWidth: 1}}>
 								<View style={{flex: 1, flexDirection: 'row'}}>
 									{this.state.selectedUser.photoURL
-										? <Image source={{uri: this.state.selectedUser.photoURL}} style={{width: 40, height: 40, borderRadius: 2, marginRight: 10}}/>
-										: <View style={{marginRight: 5, borderRadius: 2, width: 40, height: 40, backgroundColor: 'white'}}></View>
+										? <Image source={{uri: this.state.selectedUser.photoURL}} style={{width: 40, height: 40, marginRight: 5}}/>
+										: <View style={{width: 40, height: 40, marginRight: 5}}></View>
 									}
 									<View>
 										<Text>{this.state.selectedUser.userName}</Text>
