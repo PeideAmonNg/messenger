@@ -4,6 +4,11 @@ import firebase from 'react-native-firebase';
 import ImagePicker from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
+import TimeAgo from 'javascript-time-ago'
+import en from 'javascript-time-ago/locale/en'
+
+TimeAgo.addLocale(en)
+const timeAgo = new TimeAgo('en-US')
 
 export class ThreadScreen extends React.Component {
 	static navigationOptions = ({navigation}) => {		
@@ -182,6 +187,7 @@ export class ThreadScreen extends React.Component {
 				if(!(snapshot.key in this.state.messages)) {					
 
 					var msg = snapshot.val();
+					msg.key = snapshot.key;
 
 					this.setState({messages: {...this.state.messages, ...{[snapshot.key]: msg}}});
 				}
@@ -448,12 +454,9 @@ export class ThreadScreen extends React.Component {
 											>
 												<Text>{msg.msg}</Text>
 												<Text style={{fontSize: 10, color: 'gray'}}>
-													{`${("0" + new Date(msg.timestamp).getHours()).substr(-2,2)}:${("0" + new Date(msg.timestamp).getMinutes()).substr(-2,2)}`}
+													{/* {`${("0" + new Date(msg.timestamp).getHours()).substr(-2,2)}:${("0" + new Date(msg.timestamp).getMinutes()).substr(-2,2)}`} */}
+													{typeof msg.timestamp == 'number' && timeAgo.format(msg.timestamp)}
 												</Text>
-
-												{typeof(msg.timestamp) === 'number' && 
-													<Text style={{fontSize: 10, color: 'gray'}}>{msg.timestamp}</Text>
-												}
 												{msg.uploadStatus && 
 													<Text style={{fontSize: 10, color: '#039BE5'}}>{msg.uploadStatus}</Text>
 												}

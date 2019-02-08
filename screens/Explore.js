@@ -26,7 +26,6 @@ export class ExploreScreen extends React.Component {
 	}
 	
 	getRandomPeople() {
-		let uid = firebase.auth().currentUser.uid;
 		this.getRandomPeopleRef = firebase.database().ref('users').limitToLast(5).once('value', snapshot => {	
 			var i = 0;
 			var lastUid;
@@ -42,6 +41,9 @@ export class ExploreScreen extends React.Component {
 					i++;
 				});
 
+				if(firebase.auth().currentUser.uid in users) {
+					delete users[firebase.auth().currentUser.uid];
+				}
 
 				this.setState({users, lastUid})
 			}
@@ -73,15 +75,21 @@ export class ExploreScreen extends React.Component {
 			return;
 		}
 
+		const userCount = 6;
+
 		return new Promise(resolve => {
-			this.getRandomPeopleRef = firebase.database().ref('users').orderByKey().endAt(this.state.lastUid).limitToLast(3).once('value', snapshot => {	
-				if((snapshot.val() && Object.keys(snapshot.val()).length < 3)) {					
+			this.getRandomPeopleRef = firebase.database().ref('users').orderByKey().endAt(this.state.lastUid).limitToLast(userCount).once('value', snapshot => {	
+				if((snapshot.val() && Object.keys(snapshot.val()).length < userCount)) {					
 					
 					var users = {...this.state.users};
 
 					snapshot.forEach(user => {
 						users[user.key] = user.val();
 					});
+					
+					if(firebase.auth().currentUser.uid in users) {
+						delete users[firebase.auth().currentUser.uid];
+					}
 
 					this.setState({gotAllUsers: true, users});
 
@@ -100,6 +108,10 @@ export class ExploreScreen extends React.Component {
 						}
 						i++;
 					});
+
+					if(firebase.auth().currentUser.uid in users) {
+						delete users[firebase.auth().currentUser.uid];
+					}
 
 					this.setState({users, lastUid: lastUid});
 					resolve('done');

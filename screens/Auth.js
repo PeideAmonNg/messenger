@@ -66,6 +66,7 @@ class AuthScreen extends React.Component {
 				});
 			}
 		} else {
+			this.setState({loading: true});
 			firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password)
 				.then(userCred => {
 					userCred.user.updateProfile({displayName: this.state.displayName});

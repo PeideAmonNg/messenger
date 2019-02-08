@@ -44,7 +44,9 @@ export class SettingsScreen extends React.Component {
   render() {
     return (
       <View style={{flex: 1, padding: 10, backgroundColor: 'white'}}>
-				<Image source={{uri: this.state.photoURL}} style={{width: 100, height: 100}}/>
+				{this.state.photoURL &&
+					<Image source={{uri: this.state.photoURL}} style={{width: 100, height: 100}}/>
+				}
 				<View style={{flexDirection: 'row'}}>
 					<Text style={{color: 'gray'}}>name: </Text><Text style={{fontWeight: 'bold'}}>{this.state.displayName || ''}</Text>
 				</View>
@@ -68,13 +70,6 @@ export class SettingsScreen extends React.Component {
   }
 }
 
-const options = {
-  title: 'Select Photo',
-  storageOptions: {
-    skipBackup: true,
-    path: 'images',
-  },
-};
 
 export class UpdateProfileScreen extends React.Component {
 	static navigationOptions = ({navigation}) => {
@@ -88,14 +83,19 @@ export class UpdateProfileScreen extends React.Component {
 			disabled:(navigation.getParam('loading') || !isProfileUpdated) ? true : false,
 			func: () => {
 
-				if(profile && (profile.displayName != user.displayName || profile.photoURL != photoURL)) {
+				if(profile && (profile.displayName.trim() != user.displayName.trim() || profile.photoURL != user.photoURL)) {
 					navigation.setParams({loading: true});
 					
 					let key = firebase.database().ref('users').push().key;
 
+					
 					if(profile.photoURL != user.photoURL) {
 						firebase.storage().ref('userPhotos').child(key + '.jpeg').putFile(profile.photoURL).then(snapshot => {
-							firebase.database().ref(`users/${user.uid}/photoURL`).set(snapshot.downloadURL);
+							firebase.database().ref(`users/${user.uid}`).set({
+								name: profile.displayName.trim(),
+								nameLower: profile.displayName.trim().toLowerCase(),
+								photoURL: snapshot.downloadURL
+							});
 							firebase.auth().currentUser.updateProfile({displayName: profile.displayName, photoURL: snapshot.downloadURL})
 								.then(() => navigation.navigate('Settings'));
 						});
@@ -116,17 +116,26 @@ export class UpdateProfileScreen extends React.Component {
 		this.state = {
 			profile: {				
 				displayName: firebase.auth().currentUser.displayName,
-				photoURL: firebase.auth().currentUser.photoURL || ''
+				photoURL: firebase.auth().currentUser.photoURL
 			},
 			width: 100,
 			height: 100
 		};
 	}
 	
-	
+
 	showImagePicker(){
+		const options = {
+			title: 'Select Photo',
+			allowsEditing: false,
+			storageOptions: {
+				skipBackup: true,
+				path: 'images',
+			},
+		};
+
 		ImagePicker.showImagePicker(options, (response) => {																
-			
+			console.log(response);
   		if(response.didCancel) {
 				// user cancelled
 			} else if(response.error) {
@@ -171,8 +180,11 @@ export class UpdateProfileScreen extends React.Component {
 				/>
 				<Text style={{fontWeight: 'bold'}}>Photo</Text>
 				<TouchableOpacity onPress={() => this.showImagePicker()}><Text style={{paddingTop: 10, paddingBottom: 10}}>{this.state.profile.photoURL ? 'Change' : 'Select'}</Text></TouchableOpacity>
-				{this.state.profile.photURL !== '' && 
-					<Image source={{uri: this.state.profile.photoURL}} style={{width: this.state.width, height: this.state.height}}/>
+				{this.state.profile.photoURL && 
+					<View>
+						<View style={{backgroundColor: 'white', left: 0, top: 0}}></View>
+						<Image source={{uri: this.state.profile.photoURL}} style={{left: 0, top: 0, width: this.state.width, height: this.state.height, backgroundColor: 'white'}}/>
+					</View>
 				}
       </View>
     );

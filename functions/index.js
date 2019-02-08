@@ -132,7 +132,7 @@ exports.updateMatchingInterests = functions.database.ref('/userInterests/{uid}')
 	});
 
 	
-exports.addToThreadList = functions.database.ref('threads/{threadId}/messages/{msgId}')
+exports.addToThreadsByUser = functions.database.ref('threads/{threadId}/messages/{msgId}')
 .onWrite((snapshot, context) => {
 	// Grab the current value of what was written to the Realtime Database.
 	const original = snapshot.after.val();
@@ -149,10 +149,11 @@ exports.addToThreadList = functions.database.ref('threads/{threadId}/messages/{m
 
 		var i = 0;
 		for (var key in users) {
+
 			console.log('key oustide', key);
 			console.log('i outside', i++);
 			(key => {
-				admin.database().ref(`ThreadList/${key}/threadList/${context.params.threadId}`).transaction(currentThread => {
+				admin.database().ref(`threadsByUser/${key}/threads/${context.params.threadId}`).transaction(currentThread => {
 					// If users/ada/rank has never been set, currentRank will be `null`.
 					console.log('key inside', key);
 					console.log(key === context.auth.uid);

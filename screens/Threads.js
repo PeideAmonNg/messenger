@@ -35,7 +35,7 @@ export class ThreadListScreen extends React.Component {
 
 	componentDidMount() {
 		this.setState({isFetching: true}, () => {
-			this.threadsRef = firebase.database().ref(`ThreadList/${firebase.auth().currentUser.uid}/threadList`);
+			this.threadsRef = firebase.database().ref(`threadsByUser/${firebase.auth().currentUser.uid}/threads`);
 			this.threadsRef.on('value', snapshot => {
 				var threads = [];
 				if(snapshot.val()) {
@@ -87,7 +87,7 @@ export class ThreadListScreen extends React.Component {
 							return <View style={{padding: 10}}>
 								<TouchableOpacity
 									onPress={() => {
-										firebase.database().ref(`ThreadList/${uid}/threadList/${item.key}/lastRead`).set(firebase.database.ServerValue.TIMESTAMP);
+										firebase.database().ref(`threadsByUser/${uid}/threads/${item.key}/lastRead`).set(firebase.database.ServerValue.TIMESTAMP);
 										this.props.navigation.navigate('Thread', {threadId: item.key, users: Object.values(item.users)});
 									}}
 									onLongPress={() => this.setState({currentThreadId: item.key}, () => this.setModalVisible(true))}
@@ -129,7 +129,7 @@ export class ThreadListScreen extends React.Component {
 								<TouchableOpacity
 									onPress={() => {
 										if(this.state.currentThreadId) {
-											firebase.database().ref(`ThreadList/${uid}/threadList/${this.state.currentThreadId}`).remove(err => this.setModalVisible(false));
+											firebase.database().ref(`threadsByUser/${uid}/threads/${this.state.currentThreadId}`).remove(err => this.setModalVisible(false));
 										} else {
 											this.setModalVisible(false);
 										}
@@ -171,6 +171,8 @@ export class SelectUsersScreen extends React.Component {
 
 	search(name) {
 		name = name.trim();
+		
+		let uid = firebase.auth().currentUser.uid;
 
 		if(name) {
 			firebase.database().ref('users').orderByChild('nameLower')
@@ -178,7 +180,9 @@ export class SelectUsersScreen extends React.Component {
 				.once('value', snapshot => {
 					let users = [];
 					snapshot.forEach(user => {
-						users.push({...user.val(), uid: user.key, key: user.key});
+						if(uid != user.key) {
+							users.push({...user.val(), uid: user.key, key: user.key});
+						}
 					})
 					this.setState({users, searching: false});
 				});
@@ -225,7 +229,7 @@ export class SelectUsersScreen extends React.Component {
 						key={user.key}
 						onPress={() => this.removeUser(user)}
 					>
-						<View style={{flexDirection: 'row', margin: 5, padding: 5, backgroundColor: styles.textColor, alignItems: 'center'}}>
+						<View style={{flexDirection: 'row', margin: 5, padding: 0, backgroundColor: styles.textColor, alignItems: 'center'}}>
 							<Image source={{uri: user.photoURL}} style={{width: 30, height: 30}}/>
 							<Text key={user.key} style={{padding: 5, color: styles.mainColor}}>{user.name}</Text>
 							{/* <Text style={{padding: 5, color: 'lightgray'}}>x</Text> */}
